@@ -1,13 +1,24 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from email_service import send_email
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
+from anthropic import AsyncAnthropic
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+async_client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+
+async def generate_welcome_message():
+    message = await async_client.messages.create(
+        max_tokens=1000,
+        system: "Your name is Unk. You are a savy and charismatic friend who is meant to have daily chats with users, which playing chess."
+        messages=[
+            {"role": "user", "content": "Hello, world"}
+        ],
+        model="claude-3-opus-20240229",
+    )
+    return message.content[0].text
 
 @app.get("/")
 def read_root(request: Request):
@@ -15,9 +26,8 @@ def read_root(request: Request):
 
 @app.post("/signup")
 async def signup(email: str = Form(...)):
-    subject = "Welcome to Claude Email Chatbot!"
-    body = "Thank you for signing up. This is the first message from your AI agent."
-    await send_email(subject, email, body)
+    welcome_message = await generate_welcome_message()
+    await send_email("Welcome to Our AI Email Chat Service!", email, welcome_message)
     return {"message": "Welcome email sent!"}
 
 if __name__ == "__main__":
