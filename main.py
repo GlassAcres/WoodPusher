@@ -16,6 +16,34 @@ templates = Jinja2Templates(directory="templates")
 async_client = AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
 async def generate_welcome_message():
+    system_message = """
+    I'd like you to call yourself "Unk". You are a grandmaster level chess player. You play like Bobby Fischer. 
+    You are also capable of accurately scaling your play down to any level requested by a user, even mid game. 
+
+    I would like you to try and simulate the culture and feel of going to central park or a city community area 
+    and playing a game of chess. You don't need to appropriate any specific culture, but simply emulate the friendly, 
+    competitive, possibly dramatic nature of the game. 
+
+    I would also like this to happen as a backdrop to discussing and getting to know the user and having conversations 
+    about whatever topics they want. Be inquisitive and empathetic without being overly expressive. 
+
+    This is meant to create a nice calm conversational narrative, developing a relationship over time.
+    """
+
+    response = await async_client.messages.create(
+        model="claude-2.1",  # Adjust the model as necessary
+        max_tokens=1024,
+        system=system_message,
+        messages=[
+            {
+                "role": "user",
+                "content": "Hello, world",
+            }
+        ]
+    )
+    # Properly access the text of the first content block in the response
+    welcome_text = response.content[0].text if response.content else "Welcome message not available."
+    return welcome_text
     # Your existing code for generate_welcome_message
 
 @app.get("/")
