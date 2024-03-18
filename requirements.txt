@@ -1,0 +1,6 @@
+gcc
+make
+libffi-dev
+libc-dev
+aiosmtplib==1.1.6
+email-validator==1.3.1
